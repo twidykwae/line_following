@@ -4,6 +4,8 @@
 
 #include <Servo.h>
 
+#define MAIN_SPEED 40
+
 //----------------------------------------------
 // Ultrasonic sensor stuff
 //----------------------------------------------
@@ -180,23 +182,23 @@ void slightLeft() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, LOW);
-  analogWrite(PIN_Motor_PWMA, 40);
-  analogWrite(PIN_Motor_PWMB, 60);
+  analogWrite(PIN_Motor_PWMA, MAIN_SPEED * 0.667);
+  analogWrite(PIN_Motor_PWMB, MAIN_SPEED);
 }
 
 void slightRight() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, LOW);
   digitalWrite(PIN_Motor_BIN_1, HIGH);
-  analogWrite(PIN_Motor_PWMA, 60);
-  analogWrite(PIN_Motor_PWMB, 40);
+  analogWrite(PIN_Motor_PWMA, MAIN_SPEED);
+  analogWrite(PIN_Motor_PWMB, MAIN_SPEED * 0.667);
 }
 
 void hardLeft() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, LOW);
-  analogWrite(PIN_Motor_PWMA, 60);
+  analogWrite(PIN_Motor_PWMA, MAIN_SPEED);
   analogWrite(PIN_Motor_PWMB, 0);
 }
 
@@ -205,7 +207,7 @@ void hardRight() {
   digitalWrite(PIN_Motor_AIN_1, LOW);
   digitalWrite(PIN_Motor_BIN_1, HIGH);
   analogWrite(PIN_Motor_PWMA, 0);
-  analogWrite(PIN_Motor_PWMB, 60);
+  analogWrite(PIN_Motor_PWMB, MAIN_SPEED);
 }
 
 unsigned int ultrasonic_ping() {
