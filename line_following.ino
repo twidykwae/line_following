@@ -182,16 +182,16 @@ void slightLeft() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, LOW);
-  analogWrite(PIN_Motor_PWMA, MAIN_SPEED * 0.667);
-  analogWrite(PIN_Motor_PWMB, MAIN_SPEED);
+  analogWrite(PIN_Motor_PWMA, MAIN_SPEED);
+  analogWrite(PIN_Motor_PWMB, MAIN_SPEED * 0.667);
 }
 
 void slightRight() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, LOW);
   digitalWrite(PIN_Motor_BIN_1, HIGH);
-  analogWrite(PIN_Motor_PWMA, MAIN_SPEED);
-  analogWrite(PIN_Motor_PWMB, MAIN_SPEED * 0.667);
+  analogWrite(PIN_Motor_PWMA, MAIN_SPEED * 0.667);
+  analogWrite(PIN_Motor_PWMB, MAIN_SPEED);
 }
 
 void hardLeft() {
