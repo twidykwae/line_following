@@ -4,7 +4,7 @@
 
 #include <Servo.h>
 
-#define MAIN_SPEED 40
+#define MAIN_SPEED 60
 #define DELAY 5
 
 //----------------------------------------------
@@ -65,8 +65,10 @@ void setup() {
   Serial.println("Setup done");
 }
 
+int i = 0;
+int seek_started = 0;
+bool is_seeking = false;
 void loop() {
-
   line_L = analogRead(LINE_SENSE_L);
   line_M = analogRead(LINE_SENSE_M);
   line_R = analogRead(LINE_SENSE_R);
@@ -90,6 +92,9 @@ void loop() {
   Serial.println(ping_dist);
   delay(DELAY);
 
+  if (L || M || R) {
+    is_seeking = false;
+  }
   if (L && M && R) {        
     try_forward(ping_dist, last_ping);
   }
@@ -116,6 +121,8 @@ void loop() {
   }
 
   last_ping = ping_dist;
+
+  i++;
 }
 bool isonLine(int val) {
   return val > LINE_THRESHOLD;
@@ -212,6 +219,18 @@ void hardRight() {
 }
 
 void seek() {
+  if (!is_seeking) {
+    is_seeking = true;
+    seek_started = i;
+  }
+  if (seek_started < 10) {
+    left();
+  } else if (seek_started < 70) {
+    right();
+  } else {
+    right();
+  }
+  
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, LOW);
