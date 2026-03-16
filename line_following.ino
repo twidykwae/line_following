@@ -5,6 +5,7 @@
 #include <Servo.h>
 
 #define MAIN_SPEED 40
+#define DELAY 5
 
 //----------------------------------------------
 // Ultrasonic sensor stuff
@@ -87,7 +88,7 @@ void loop() {
   
   Serial.print("Ultrasound response: ");
   Serial.println(ping_dist);
-  delay(10);
+  delay(DELAY);
 
   if (L && M && R) {        
     try_forward(ping_dist, last_ping);
@@ -214,8 +215,8 @@ void seek() {
   digitalWrite(PIN_Motor_STBY, HIGH);
   digitalWrite(PIN_Motor_AIN_1, HIGH);
   digitalWrite(PIN_Motor_BIN_1, LOW);
-  analogWrite(PIN_Motor_PWMA, default_speed * 0.667);
-  analogWrite(PIN_Motor_PWMB, default_speed * 0.667);
+  analogWrite(PIN_Motor_PWMA, default_speed);
+  analogWrite(PIN_Motor_PWMB, default_speed);
 }
 
 unsigned int ultrasonic_ping() {
