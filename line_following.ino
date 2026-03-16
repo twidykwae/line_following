@@ -111,7 +111,7 @@ void loop() {
     slightRight();
   }
   else if (!L && !M && !R) {
-    left(); // search
+    seek(); // search
   }
 
   last_ping = ping_dist;
@@ -208,6 +208,14 @@ void hardRight() {
   digitalWrite(PIN_Motor_BIN_1, HIGH);
   analogWrite(PIN_Motor_PWMA, 0);
   analogWrite(PIN_Motor_PWMB, MAIN_SPEED);
+}
+
+void seek() {
+  digitalWrite(PIN_Motor_STBY, HIGH);
+  digitalWrite(PIN_Motor_AIN_1, HIGH);
+  digitalWrite(PIN_Motor_BIN_1, LOW);
+  analogWrite(PIN_Motor_PWMA, default_speed * 0.667);
+  analogWrite(PIN_Motor_PWMB, default_speed * 0.667);
 }
 
 unsigned int ultrasonic_ping() {
