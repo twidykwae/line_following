@@ -77,8 +77,8 @@ void setup() {
 
 }
 
-int all_three_cooldown {100};
-int turn_cooldown {50};
+int all_three_cooldown {200};
+int turn_cooldown {100};
 void loop() {
   line_L = analogRead(LINE_SENSE_L);
   line_M = analogRead(LINE_SENSE_M);
@@ -100,28 +100,32 @@ void loop() {
   delay(DELAY);
 
   if (all_three_cooldown > 0) all_three_cooldown -= DELAY;
-  if (turn_cooldown > 0) turn_cooldown -= DELAY;
+//  if (turn_cooldown > 0) turn_cooldown -= DELAY;
+  if (turn_cooldown > 0 && !M) turn_cooldown = 0;
 
   if (!turning_right && !turning_left && all_three_tape() && all_three_cooldown <= 0) {
     Serial.print("Executing checkpoint ");
     Serial.println(direction_i);
     execute(directions[direction_i]);
     direction_i++;
-    all_three_cooldown = 100;
+    all_three_cooldown = 200;
   }
 
   if ((turning_right || turning_left) && M && turn_cooldown <= 0) {
+    Serial.println("resetting turn");
     turning_right = false;
     turning_left = false;
-    turn_cooldown = 50;
+    turn_cooldown = 100;
   }
 
   if (turning_right) {
-    right();
+    hardRight();
+    Serial.println("right");
   } else if (turning_left) {
-    left();
+    hardLeft();
+    Serial.println("left");
   } else if (M && !L && !R) {
-    forward();        // ← was halt(), fix this
+    forward();       
   } else if (L && M && !R) {
     slightLeft();
   } else if (R && M && !L) {
@@ -130,6 +134,12 @@ void loop() {
     hardLeft();
   } else if (R && !M && !L) {
     hardRight();
+  } else if (direction_i > 0 && !L && !M && !R) {
+    if (directions[direction_i - 1].dir == Left) {
+      slightLeft();
+    } else {
+      slightRight();
+    }
   } else {
     forward();
   }
@@ -145,6 +155,7 @@ bool all_three_tape() {
 
 void execute(Checkpoint c) {
   if (c.dir == Straight){
+    Serial.println("setting straight");
     turning_right = false;
     turning_left = false;
   }
