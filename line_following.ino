@@ -35,6 +35,7 @@ const int LINE_SENSE_R = A0;
 // Variables to hold the line sensor values.
 //----------------------------------------------
 int line_L, line_M, line_R;
+bool L, M, R;
 
 //----------------------------------------------
 
@@ -46,6 +47,16 @@ bool motor_on = true;
 const int LINE_THRESHOLD = 200;
 
 int last_ping = 0;
+
+enum Direction { Left, Straight, Right };
+struct Checkpoint {
+  bool ultrasonic;
+  Direction dir;
+};
+Checkpoint directions[10] = {{true, Left}, {false, Right}, {false, Right}, {true, Left}, {false, Straight}, {false, Left}, {false, Right}, {false, Straight}, {false, Right}, {true, Left}};;
+int direction_i {};
+bool turning_right {false};
+bool turning_left {false};
 
 void setup() {
   pinMode(PIN_Motor_PWMA, OUTPUT);
@@ -63,69 +74,88 @@ void setup() {
 
   Serial.begin(9600);
   Serial.println("Setup done");
+
 }
 
-int i = 0;
-int seek_started = 0;
-bool is_seeking = false;
+int all_three_cooldown {100};
+int turn_cooldown {50};
 void loop() {
   line_L = analogRead(LINE_SENSE_L);
   line_M = analogRead(LINE_SENSE_M);
   line_R = analogRead(LINE_SENSE_R);
 
-  bool L = isonLine(line_L);
-  bool M = isonLine(line_M);
-  bool R = isonLine(line_R);
+  L = isonLine(line_L);
+  M = isonLine(line_M);
+  R = isonLine(line_R);
 
-  // Useful for debugging line sensor input
-  Serial.print("L: ");
-  Serial.print(line_L); 
-  Serial.print(", M: ");
-  Serial.print(line_M);
-  Serial.print(", R: ");
-  Serial.print(line_R);
-  Serial.println();
-  
+  // Serial.print("L: "); Serial.print(line_L);
+  // Serial.print(", M: "); Serial.print(line_M);
+  // Serial.print(", R: "); Serial.print(line_R);
+  // Serial.println();
+
   int ping_dist = ultrasonic_ping();
   
-  Serial.print("Ultrasound response: ");
-  Serial.println(ping_dist);
-  delay(DELAY);
-
-  if (L || M || R) {
-    is_seeking = false;
-  }
-  if (L && M && R) {        
-    try_forward(ping_dist, last_ping);
-  }
-  else if (L && !M && R) {  
-    try_forward(ping_dist, last_ping);
-  }
-  else if (M && !L && !R) {
-    try_forward(ping_dist, last_ping);
-  }
-  else if (L && !M && !R) {
-    hardLeft();
-  }
-  else if (L && M && !R) {
-    slightLeft();
-  }
-  else if (R && !M && !L) {
-    hardRight();
-  }
-  else if (R && M && !L) {
-    slightRight();
-  }
-  else if (!L && !M && !R) {
-    seek(); // search
-  }
-
   last_ping = ping_dist;
 
-  i++;
+  delay(DELAY);
+
+  if (all_three_cooldown > 0) all_three_cooldown -= DELAY;
+  if (turn_cooldown > 0) turn_cooldown -= DELAY;
+
+  if (!turning_right && !turning_left && all_three_tape() && all_three_cooldown <= 0) {
+    Serial.print("Executing checkpoint ");
+    Serial.println(direction_i);
+    execute(directions[direction_i]);
+    direction_i++;
+    all_three_cooldown = 100;
+  }
+
+  if ((turning_right || turning_left) && M && turn_cooldown <= 0) {
+    turning_right = false;
+    turning_left = false;
+    turn_cooldown = 50;
+  }
+
+  if (turning_right) {
+    right();
+  } else if (turning_left) {
+    left();
+  } else if (M && !L && !R) {
+    forward();        // ← was halt(), fix this
+  } else if (L && M && !R) {
+    slightLeft();
+  } else if (R && M && !L) {
+    slightRight();
+  } else if (L && !M && !R) {
+    hardLeft();
+  } else if (R && !M && !L) {
+    hardRight();
+  } else {
+    forward();
+  }
 }
+
 bool isonLine(int val) {
   return val > LINE_THRESHOLD;
+}
+
+bool all_three_tape() {
+  return L && M && R;
+}
+
+void execute(Checkpoint c) {
+  if (c.dir == Straight){
+    turning_right = false;
+    turning_left = false;
+  }
+  if (c.dir == Left){
+    turning_right = false;
+    turning_left = true;
+  }
+  if (c.dir == Right){
+    turning_right = true;
+    turning_left = false;
+  }
 }
 
 void try_forward(int ping_dist, int last_ping) {
@@ -133,11 +163,11 @@ void try_forward(int ping_dist, int last_ping) {
     halt();
   } else if (ping_dist > 50 && last_ping > 50) {
     forward();
-  }
+ }
 }
 
 void forward() {
-  Serial.println("go forward!");
+//  Serial.println("go forward!");
   if (!motor_on) return;
 
   digitalWrite(PIN_Motor_STBY, HIGH);
@@ -218,25 +248,25 @@ void hardRight() {
   analogWrite(PIN_Motor_PWMB, MAIN_SPEED);
 }
 
-void seek() {
-  if (!is_seeking) {
-    is_seeking = true;
-    seek_started = i;
-  }
-  if (seek_started < 10) {
-    left();
-  } else if (seek_started < 70) {
-    right();
-  } else {
-    right();
-  }
-  
-  digitalWrite(PIN_Motor_STBY, HIGH);
-  digitalWrite(PIN_Motor_AIN_1, HIGH);
-  digitalWrite(PIN_Motor_BIN_1, LOW);
-  analogWrite(PIN_Motor_PWMA, default_speed);
-  analogWrite(PIN_Motor_PWMB, default_speed);
-}
+//void seek() {
+//  if (!is_seeking) {
+//    is_seeking = true;
+//    seek_started = i;
+//  }
+//  if (seek_started < 10) {
+//    left();
+//  } else if (seek_started < 70) {
+//    right();
+//  } else {
+//    right();
+//  }
+//  
+//  digitalWrite(PIN_Motor_STBY, HIGH);
+//  digitalWrite(PIN_Motor_AIN_1, HIGH);
+//  digitalWrite(PIN_Motor_BIN_1, LOW);
+//  analogWrite(PIN_Motor_PWMA, default_speed);
+//  analogWrite(PIN_Motor_PWMB, default_speed);
+//}
 
 unsigned int ultrasonic_ping() {
   digitalWrite(PIN_Trig, LOW);
